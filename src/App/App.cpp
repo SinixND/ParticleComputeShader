@@ -91,17 +91,7 @@ void updateDeveloperMode()
     }
 }
 
-void update_temp( [[maybe_unused]] float dt )
-{
-    static int ch{};
-    clear();
-    printw( "%c\n", ch );
-    printw( "%f\n", dt );
-    refresh();
-    ch = (int)getch();
-}
-
-void render_temp()
+void App::render()
 {
 #if !defined( NOGUI )
     BeginDrawing();
@@ -125,11 +115,9 @@ void updateApp( void* arg )
 
     app.dt = GetFrameTime();
 
-    //* TODO: Update
-    update_temp( app.dt );
+    app.simulation.update( app.dt );
 
-    //* TODO: Render
-    render_temp();
+    app.render();
 }
 
 void App::setupAppEvents()
@@ -146,6 +134,8 @@ void App::init( AppConfig const& config )
     setupFrameworks( config );
 
     setupAppEvents();
+
+    simulation.init();
 }
 
 void App::run()
