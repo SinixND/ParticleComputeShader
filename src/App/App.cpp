@@ -103,7 +103,7 @@ void App::render()
 
     for ( Particle const& particle : simulation.particles )
     {
-        ParticleSystem::drawParticle( particle.position );
+        ParticleSystem::drawParticle( particle );
     }
 
     EndDrawing();
@@ -121,6 +121,7 @@ void updateApp( void* arg )
     app.dt = GetFrameTime();
 
     app.simulation.update( app.dt );
+    // app.simulation.update_multithreaded( app.dt );
 
     app.render();
 }
@@ -170,6 +171,8 @@ void App::run()
 
 void App::deinit()
 {
+    simulation.deinit();
+
     //* Close window and opengl context
 #if !defined( NOGUI )
     CloseWindow();

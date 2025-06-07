@@ -22,7 +22,7 @@ namespace ParticleSystem
         float dt
     );
 
-    void drawParticle( Vector2 const& position );
+    void drawParticle( Particle const& particle );
 }
 
 #endif

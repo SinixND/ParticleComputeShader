@@ -17,7 +17,8 @@ namespace ParticleSystem
             particle.position
         ) };
 
-        float distance = Vector2Length( delta );
+        //* Distance influences acceleration, fmax caps velocity delta
+        float distance = fmax( Vector2Length( delta ), 10.0f );
         Vector2 direction = Vector2Normalize( delta );
 
         particle.velocity = Vector2Add(
@@ -54,28 +55,42 @@ namespace ParticleSystem
             )
         );
 
-        if ( particle.position.x < 0 || particle.position.x > GetScreenWidth() )
+        int screenWidth{ GetScreenWidth() };
+        int screenHeight{ GetScreenHeight() };
+
+        if ( particle.position.x < 0 )
         {
-            particle.velocity.x *= -1;
+            particle.position.x += screenWidth;
         }
 
-        if ( particle.position.y < 0 || particle.position.y > GetScreenHeight() )
+        if ( particle.position.x > screenWidth )
         {
-            particle.velocity.y *= -1;
+            particle.position.x -= screenWidth;
+        }
+
+        if ( particle.position.y < 0 )
+        {
+            particle.position.y += screenHeight;
+        }
+
+        if ( particle.position.y > screenHeight )
+        {
+            particle.position.y -= screenHeight;
         }
 
         return particle;
     }
 
-    void drawParticle( Vector2 const& position )
+    void drawParticle( Particle const& particle )
     {
+        //* Max speed: multiplier/0.5
         DrawPixelV(
-            position,
+            particle.position,
             Color{
                 255,
                 255,
                 255,
-                255
+                50
             }
         );
     }

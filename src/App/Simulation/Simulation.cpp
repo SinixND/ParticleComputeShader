@@ -1,7 +1,5 @@
 #include "Simulation.h"
 
-#include "EventDispatcher.h"
-#include "EventId.h"
 #include "Particle.h"
 #include "ParticleSystem.h"
 #include "RNG.h"
@@ -27,26 +25,72 @@ void Simulation::init()
     }
 }
 
+void updateParticle(
+    Particle& particle,
+    Vector2 const& mousePosition,
+    float dt
+)
+{
+    ParticleSystem::attract(
+        particle,
+        mousePosition,
+        1000
+    );
+
+    ParticleSystem::applyFriction(
+        particle.velocity,
+        0.985
+    );
+
+    ParticleSystem::move(
+        particle,
+        dt
+    );
+}
+
 void Simulation::update( float dt )
 {
-    Vector2 mousePosition{ GetMousePosition() };
+    Vector2 const mousePosition{ GetMousePosition() };
 
     for ( Particle& particle : particles )
     {
-        ParticleSystem::attract(
+        updateParticle(
             particle,
             mousePosition,
-            1000
-        );
-
-        ParticleSystem::applyFriction(
-            particle.velocity,
-            0.99
-        );
-
-        ParticleSystem::move(
-            particle,
             dt
         );
     }
+}
+
+#if !defined( EMSCRIPTEN )
+void Simulation::update_multithreaded( float dt )
+{
+    Vector2 const mousePosition{ GetMousePosition() };
+
+    size_t const threadCount{ threadPool.threadCount() };
+
+    for ( size_t i{ 0 }; i < threadCount; ++i )
+    {
+        size_t const threadNumber{ i };
+
+        threadPool.queueJob(
+            [&]()
+            {
+                for ( size_t particleNumber{ threadNumber * PARTICLE_COUNT / threadCount }; particleNumber < ( ( threadNumber + 1 ) * PARTICLE_COUNT / threadCount ); ++particleNumber )
+                {
+                    updateParticle( particles[particleNumber], mousePosition, dt );
+                }
+            }
+        );
+    }
+
+    threadPool.joinJobs();
+}
+#endif
+
+void Simulation::deinit()
+{
+#if !defined( EMSCRIPTEN )
+    threadPool.stop();
+#endif
 }
