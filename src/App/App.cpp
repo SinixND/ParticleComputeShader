@@ -6,8 +6,7 @@
 #include "DeveloperMode.h"
 #include "EventDispatcher.h"
 #include "EventId.h"
-#include <iostream>
-#include <ncurses.h>
+#include "ParticleSystem.h"
 #include <raylib.h>
 
 #if defined( EMSCRIPTEN )
@@ -102,6 +101,11 @@ void App::render()
         DrawFPS( 0, 0 );
     }
 
+    for ( Particle const& particle : simulation.particles )
+    {
+        ParticleSystem::drawParticle( particle.position );
+    }
+
     EndDrawing();
 #endif
 }
@@ -112,6 +116,7 @@ void updateApp( void* arg )
     App& app = *(App*)arg;
 
     updateFullscreenState();
+    updateDeveloperMode();
 
     app.dt = GetFrameTime();
 
@@ -124,7 +129,10 @@ void App::setupAppEvents()
 {
     snx::EventDispatcher::addListener(
         EventId::WINDOW_RESIZED,
-        [&]() {},
+        [&]()
+        {
+            simulation.init();
+        },
         true
     );
 }

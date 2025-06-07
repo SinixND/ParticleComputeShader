@@ -6,7 +6,7 @@
 
 class Simulation
 {
-private:
+public:
     std::vector<Particle> particles{};
 
 public:

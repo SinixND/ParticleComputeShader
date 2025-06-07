@@ -54,10 +54,10 @@ namespace snx
             }
         }
 
-        static void reset()
-        {
-            eventToListenerLists_ = std::unordered_map<EventId, ListenerList>{ {} };
-        }
+        // static void reset()
+        // {
+        //     eventToListenerLists_ = std::unordered_map<EventId, ListenerList>{ {} };
+        // }
 
     private:
         //* Ensure listener list exists for given event

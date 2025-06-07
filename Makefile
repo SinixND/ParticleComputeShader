@@ -209,7 +209,7 @@ RAYLIB_SRC_DIR 			= $(USR)/lib/raylib/src
 #######################################
 
 ### Label used libraries so the respective -l flags (eg. -lraylib)
-LIBRARIES 				:= raylib ncurses
+LIBRARIES 				:= raylib
 ifeq ($(PLATFORM),windows)
     LIBRARIES 			+= opengl32 gdi32 winmm
 endif
