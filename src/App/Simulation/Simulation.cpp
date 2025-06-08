@@ -7,6 +7,7 @@
 
 void Simulation::init()
 {
+    //* Init particles
     for ( size_t i{ 0 }; i < PARTICLE_COUNT; ++i )
     {
         particles[i] =
@@ -36,12 +37,12 @@ void updateParticle(
     ParticleSystem::attract(
         particle,
         mousePosition,
-        1000
+        MULTIPLIER
     );
 
     ParticleSystem::applyFriction(
         particle.velocity,
-        0.995
+        FRICTION
     );
 
     ParticleSystem::move(
@@ -52,21 +53,17 @@ void updateParticle(
     );
 }
 
-void Simulation::update( float dt )
+void Simulation::updateSingleCore(
+    int screenWidth,
+    int screenHeight,
+    Vector2 mousePosition,
+    float dt
+)
 {
-    int screenWidth{ GetScreenWidth() };
-    int screenHeight{ GetScreenHeight() };
-
-    Vector2 mousePosition{ 0, 0 };
-    if ( IsMouseButtonDown( MOUSE_LEFT_BUTTON ) )
-    {
-        mousePosition = GetMousePosition();
-    }
-
-    for ( Particle& particle : particles )
+    for ( int i{ 0 }; i < PARTICLE_COUNT; ++i )
     {
         updateParticle(
-            particle,
+            particles[i],
             screenWidth,
             screenHeight,
             mousePosition,
@@ -75,18 +72,62 @@ void Simulation::update( float dt )
     }
 }
 
-#if !defined( EMSCRIPTEN )
-void Simulation::update_multithreaded( float dt )
+void Simulation::update(
+    int screenWidth,
+    int screenHeight,
+    Vector2 mousePosition,
+    float dt
+)
 {
-    int screenWidth{ GetScreenWidth() };
-    int screenHeight{ GetScreenHeight() };
-
-    Vector2 mousePosition{ 0, 0 };
-    if ( IsMouseButtonDown( MOUSE_LEFT_BUTTON ) )
+    switch ( state )
     {
-        mousePosition = GetMousePosition();
-    }
+        default:
+        case State::SINGLE_CORE:
+        {
+            updateSingleCore(
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
+            );
 
+            break;
+        }
+
+        case State::MULTITHREAD:
+        {
+            updateMultithreaded(
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
+            );
+
+            break;
+        }
+
+        case State::GPU:
+        {
+            updateGPU(
+                // screenWidth,
+                // screenHeight,
+                // mousePosition,
+                // dt
+            );
+
+            break;
+        }
+    }
+}
+
+void Simulation::updateMultithreaded(
+    int screenWidth,
+    int screenHeight,
+    Vector2 mousePosition,
+    float dt
+)
+{
+#if !defined( EMSCRIPTEN )
     size_t const threadCount{ threadPool_.threadCount() };
     float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
 
@@ -113,8 +154,17 @@ void Simulation::update_multithreaded( float dt )
     }
 
     threadPool_.joinJobs();
-}
 #endif
+}
+
+void Simulation::updateGPU(
+    // int screenWidth,
+    // int screenHeight,
+    // Vector2 mousePosition,
+    // float dt
+)
+{
+}
 
 void Simulation::deinit()
 {

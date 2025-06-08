@@ -4,11 +4,11 @@
 // := **How** things are drawn
 // Adds colors to pixels
 
-// Reqired 
+// Required
 // GLSL version
 #version 330
 
-// Input vertex attributes (from vertex shader)
+// Input vertex attributes (FROM VERTEX SHADER)
 in vec2 fragTexCoord;
 in vec4 fragColor;
 
@@ -28,7 +28,5 @@ void main()
 
     // NOTE: Implement here your fragment shader code
 
-    finalColor = texelColor*colDiffuse;
+    finalColor = texelColor * colDiffuse;
 }
-
-// vim: set filetype=frag :

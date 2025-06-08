@@ -419,8 +419,8 @@ analyze:
 		--check-level=exhaustive \
 		--cppcheck-build-dir=$(BUILD_DIR_ROOT)/cppcheck \
 		--template=gcc \
-		-I include/ \
 		-I src/ \
+		-i include/ \
 		src/
 
 ### Build binary with current config
