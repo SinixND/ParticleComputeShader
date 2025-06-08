@@ -5,23 +5,17 @@
 #include "RNG.h"
 #include <raylib.h>
 
-int constexpr PARTICLE_COUNT{ 10000 };
-
 void Simulation::init()
 {
-    particles.reserve( PARTICLE_COUNT );
-    particles.clear();
-
     for ( size_t i{ 0 }; i < PARTICLE_COUNT; ++i )
     {
-        particles.push_back(
+        particles[i] =
             Particle{
                 { static_cast<float>( snx::RNG::random( 0, GetRenderWidth() ) ),
                   static_cast<float>( snx::RNG::random( 0, GetRenderHeight() ) ) },
                 { static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f,
                   static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f }
-            }
-        );
+            };
     }
 }
 
@@ -41,7 +35,7 @@ void updateParticle(
 
     ParticleSystem::applyFriction(
         particle.velocity,
-        0.985
+        0.99
     );
 
     ParticleSystem::move(
@@ -57,7 +51,11 @@ void Simulation::update( float dt )
     int screenWidth{ GetScreenWidth() };
     int screenHeight{ GetScreenHeight() };
 
-    Vector2 const mousePosition{ GetMousePosition() };
+    Vector2 mousePosition{ 0, 0 };
+    if ( IsMouseButtonDown( MOUSE_LEFT_BUTTON ) )
+    {
+        mousePosition = GetMousePosition();
+    }
 
     for ( Particle& particle : particles )
     {
@@ -76,7 +74,12 @@ void Simulation::update_multithreaded( float dt )
 {
     int screenWidth{ GetScreenWidth() };
     int screenHeight{ GetScreenHeight() };
-    Vector2 const mousePosition{ GetMousePosition() };
+
+    Vector2 mousePosition{ 0, 0 };
+    if ( IsMouseButtonDown( MOUSE_LEFT_BUTTON ) )
+    {
+        mousePosition = GetMousePosition();
+    }
 
     size_t const threadCount{ threadPool_.threadCount() };
     float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };

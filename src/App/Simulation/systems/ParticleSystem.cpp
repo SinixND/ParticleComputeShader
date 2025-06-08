@@ -12,6 +12,11 @@ namespace ParticleSystem
         float multiplier
     )
     {
+        if ( !target.x && !target.y )
+        {
+            return particle;
+        }
+
         Vector2 delta{ Vector2Subtract(
             target,
             particle.position

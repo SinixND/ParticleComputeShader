@@ -111,8 +111,8 @@ void updateApp( void* arg )
 
     app.dt = GetFrameTime();
 
-    // app.simulation.update( app.dt );
-    app.simulation.update_multithreaded( app.dt );
+    app.simulation.update( app.dt );
+    // app.simulation.update_multithreaded( app.dt );
 
     app.render();
 }
