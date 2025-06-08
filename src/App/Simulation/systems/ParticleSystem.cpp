@@ -90,12 +90,7 @@ namespace ParticleSystem
         //* Max speed: multiplier/0.5
         DrawPixelV(
             particle.position,
-            Color{
-                255,
-                255,
-                255,
-                50
-            }
+            particle.color
         );
     }
 }

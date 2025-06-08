@@ -14,7 +14,13 @@ void Simulation::init()
                 { static_cast<float>( snx::RNG::random( 0, GetRenderWidth() ) ),
                   static_cast<float>( snx::RNG::random( 0, GetRenderHeight() ) ) },
                 { static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f,
-                  static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f }
+                  static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f },
+                Color{
+                    (unsigned char)snx::RNG::random( 0, 255 ),
+                    (unsigned char)snx::RNG::random( 0, 255 ),
+                    (unsigned char)snx::RNG::random( 0, 255 ),
+                    50
+                }
             };
     }
 }

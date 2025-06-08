@@ -6,8 +6,13 @@
 struct Particle
 {
     Vector2 position{ 0, 0 };
-
     Vector2 velocity{ 0, 0 };
+    Color color{
+        255,
+        255,
+        255,
+        50
+    };
 };
 
 #endif
