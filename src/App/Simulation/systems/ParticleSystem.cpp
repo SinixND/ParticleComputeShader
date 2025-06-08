@@ -23,7 +23,7 @@ namespace ParticleSystem
         ) };
 
         //* Distance influences acceleration, fmax caps velocity delta
-        float distance = fmax( Vector2Length( delta ), 10.0f );
+        float distance = fmax( Vector2Length( delta ), 100.0f );
         Vector2 direction = Vector2Normalize( delta );
 
         particle.velocity = Vector2Add(

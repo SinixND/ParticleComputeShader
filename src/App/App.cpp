@@ -87,10 +87,7 @@ void App::render()
     BeginDrawing();
     ClearBackground( ColorData::BG );
 
-    if ( DeveloperMode::isActive() )
-    {
-        DrawFPS( 0, 0 );
-    }
+    DrawFPS( 0, 0 );
 
     for ( Particle const& particle : simulation.particles )
     {

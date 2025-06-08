@@ -3,9 +3,8 @@
 
 #include "Particle.h"
 #include "ThreadPool.h"
-#include <array>
 
-int constexpr PARTICLE_COUNT{ 50000 };
+int constexpr PARTICLE_COUNT{ 100000 };
 
 class Simulation
 {
@@ -14,7 +13,8 @@ class Simulation
 #endif
 
 public:
-    std::array<Particle, PARTICLE_COUNT> particles{};
+    // std::array<Particle, PARTICLE_COUNT> particles{};
+    std::vector<Particle> particles{ PARTICLE_COUNT };
 
 public:
     void init();

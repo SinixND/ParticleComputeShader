@@ -41,7 +41,7 @@ void updateParticle(
 
     ParticleSystem::applyFriction(
         particle.velocity,
-        0.99
+        0.995
     );
 
     ParticleSystem::move(
