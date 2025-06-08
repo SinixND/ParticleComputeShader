@@ -45,18 +45,9 @@ void setupRaylib( [[maybe_unused]] AppConfig const& config )
     SetExitKey( AppData::EXIT_KEY );
 }
 
-void setupNcurses()
-{
-#if defined( NOGUI )
-    initscr();
-    keypad( stdscr, TRUE );
-#endif
-}
-
 void setupFrameworks( AppConfig const& config )
 {
     setupRaylib( config );
-    setupNcurses();
 }
 
 void updateFullscreenState()
@@ -120,8 +111,8 @@ void updateApp( void* arg )
 
     app.dt = GetFrameTime();
 
-    app.simulation.update( app.dt );
-    // app.simulation.update_multithreaded( app.dt );
+    // app.simulation.update( app.dt );
+    app.simulation.update_multithreaded( app.dt );
 
     app.render();
 }
@@ -173,10 +164,8 @@ void App::deinit()
 {
     simulation.deinit();
 
-    //* Close window and opengl context
 #if !defined( NOGUI )
+    //* Close window and opengl context
     CloseWindow();
-#else
-    endwin();
 #endif
 }

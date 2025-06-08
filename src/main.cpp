@@ -1,6 +1,5 @@
 #include "App.h"
 #include "AppConfigs.h"
-
 int main( /* int argc, char** argv */ )
 {
     AppConfig config{};

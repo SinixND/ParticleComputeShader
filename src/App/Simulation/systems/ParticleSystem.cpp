@@ -44,6 +44,8 @@ namespace ParticleSystem
 
     Particle const& move(
         Particle& particle,
+        int screenWidth,
+        int screenHeight,
         float dt
     )
     {
@@ -54,9 +56,6 @@ namespace ParticleSystem
                 dt
             )
         );
-
-        int screenWidth{ GetScreenWidth() };
-        int screenHeight{ GetScreenHeight() };
 
         if ( particle.position.x < 0 )
         {

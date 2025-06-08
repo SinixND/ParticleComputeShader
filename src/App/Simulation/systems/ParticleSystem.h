@@ -19,6 +19,8 @@ namespace ParticleSystem
 
     Particle const& move(
         Particle& particle,
+        int screenWidth,
+        int screenHeight,
         float dt
     );
 

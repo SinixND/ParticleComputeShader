@@ -8,7 +8,7 @@
 class Simulation
 {
 #if !defined( EMSCRIPTEN )
-    ThreadPool threadPool{};
+    ThreadPool threadPool_{};
 #endif
 
 public:

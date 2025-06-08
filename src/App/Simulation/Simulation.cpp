@@ -5,7 +5,7 @@
 #include "RNG.h"
 #include <raylib.h>
 
-int constexpr PARTICLE_COUNT{ 100000 };
+int constexpr PARTICLE_COUNT{ 10000 };
 
 void Simulation::init()
 {
@@ -27,6 +27,8 @@ void Simulation::init()
 
 void updateParticle(
     Particle& particle,
+    int screenWidth,
+    int screenHeight,
     Vector2 const& mousePosition,
     float dt
 )
@@ -44,18 +46,25 @@ void updateParticle(
 
     ParticleSystem::move(
         particle,
+        screenWidth,
+        screenHeight,
         dt
     );
 }
 
 void Simulation::update( float dt )
 {
+    int screenWidth{ GetScreenWidth() };
+    int screenHeight{ GetScreenHeight() };
+
     Vector2 const mousePosition{ GetMousePosition() };
 
     for ( Particle& particle : particles )
     {
         updateParticle(
             particle,
+            screenWidth,
+            screenHeight,
             mousePosition,
             dt
         );
@@ -65,32 +74,42 @@ void Simulation::update( float dt )
 #if !defined( EMSCRIPTEN )
 void Simulation::update_multithreaded( float dt )
 {
+    int screenWidth{ GetScreenWidth() };
+    int screenHeight{ GetScreenHeight() };
     Vector2 const mousePosition{ GetMousePosition() };
 
-    size_t const threadCount{ threadPool.threadCount() };
+    size_t const threadCount{ threadPool_.threadCount() };
+    float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
 
-    for ( size_t i{ 0 }; i < threadCount; ++i )
+    for ( size_t threadNumber{ 0 }; threadNumber < threadCount; ++threadNumber )
     {
-        size_t const threadNumber{ i };
+        size_t firstParticle{ (size_t)( threadNumber * particlesPerThread ) };
+        size_t lastParticle{ (size_t)( ( threadNumber + 1 ) * particlesPerThread ) };
 
-        threadPool.queueJob(
-            [&]()
+        threadPool_.queueJob(
+            [=, this]()
             {
-                for ( size_t particleNumber{ threadNumber * PARTICLE_COUNT / threadCount }; particleNumber < ( ( threadNumber + 1 ) * PARTICLE_COUNT / threadCount ); ++particleNumber )
+                for ( size_t particleNumber{ firstParticle }; particleNumber < lastParticle; ++particleNumber )
                 {
-                    updateParticle( particles[particleNumber], mousePosition, dt );
+                    updateParticle(
+                        particles[particleNumber],
+                        screenWidth,
+                        screenHeight,
+                        mousePosition,
+                        dt
+                    );
                 }
             }
         );
     }
 
-    threadPool.joinJobs();
+    threadPool_.joinJobs();
 }
 #endif
 
 void Simulation::deinit()
 {
 #if !defined( EMSCRIPTEN )
-    threadPool.stop();
+    threadPool_.stop();
 #endif
 }

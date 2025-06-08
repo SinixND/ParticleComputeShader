@@ -24,7 +24,7 @@ class ThreadPool
     //* Allows threads to wait on new jobs or termination
     std::condition_variable mutex_condition_;
     std::vector<std::thread> threads_;
-    std::queue<std::function<void()>> jobs_;
+    std::queue<std::function<void()>> poolJobs_;
 
     //* Allows to check for active jobs; Needed as threads are always active (waiting for jobs)
     std::mutex active_job_mutex_;
@@ -83,7 +83,7 @@ inline void ThreadPool::threadLoop()
 {
     while ( true )
     {
-        std::function<void()> job;
+        std::function<void()> threadJob;
 
         {
             std::unique_lock<std::mutex> lock( queue_mutex_ );
@@ -92,7 +92,7 @@ inline void ThreadPool::threadLoop()
                 lock,
                 [this]
                 {
-                    return !jobs_.empty() || should_terminate_;
+                    return !poolJobs_.empty() || should_terminate_;
                 }
             );
 
@@ -101,9 +101,9 @@ inline void ThreadPool::threadLoop()
                 return;
             }
 
-            job = jobs_.front();
+            threadJob = poolJobs_.front();
 
-            jobs_.pop();
+            poolJobs_.pop();
         }
 
         {
@@ -111,7 +111,7 @@ inline void ThreadPool::threadLoop()
             ++active_jobs_;
         }
 
-        job();
+        threadJob();
 
         {
             std::unique_lock<std::mutex> lock( active_job_mutex_ );
@@ -124,7 +124,7 @@ inline void ThreadPool::queueJob( std::function<void()> const& job )
 {
     {
         std::unique_lock<std::mutex> lock( queue_mutex_ );
-        jobs_.push( job );
+        poolJobs_.push( job );
     }
 
     mutex_condition_.notify_one();
@@ -136,7 +136,7 @@ inline bool ThreadPool::isJobQueued()
 
     {
         std::unique_lock<std::mutex> lock( queue_mutex_ );
-        isPoolBusy = !jobs_.empty();
+        isPoolBusy = !poolJobs_.empty();
     }
 
     return isPoolBusy;
