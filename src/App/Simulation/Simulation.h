@@ -32,7 +32,7 @@ public:
 #if defined( EMSCRIPTEN )
     State state{ State::SINGLE_CORE };
 #else
-    State state{ State::GPU };
+    State state{ State::MULTITHREAD };
 #endif
 
 public:
@@ -46,10 +46,10 @@ public:
     void deinit();
 
     void updateGPU(
-        // int screenWidth,
-        // int screenHeight,
-        // Vector2 mousePosition,
-        // float dt
+        int screenWidth,
+        int screenHeight,
+        Vector2 mousePosition,
+        float dt
     );
 
 private:

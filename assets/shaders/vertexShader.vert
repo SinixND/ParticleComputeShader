@@ -80,6 +80,8 @@ vec2 move(
 
 void main()
 {
+    gl_PointSize = 3.0f;
+
     vec2 newVelocity = attract(
             velocity,
             mousePosition,

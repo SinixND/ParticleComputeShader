@@ -59,7 +59,6 @@ void App::setupShaders( AppConfig const& config )
         config.vertexShaderPath,
         config.fragmentShaderPath
     );
-    rlEnableShader( shader.id );
 
     //* VAO
     vao = rlLoadVertexArray();
@@ -84,15 +83,7 @@ void App::setupShaders( AppConfig const& config )
     //* Velocity
     rlSetVertexAttribute( 1, 2, RL_FLOAT, false, 20, 0 );
     //* Color
-    rlSetVertexAttribute( 2, 2, RL_UNSIGNED_BYTE, false, 20, 0 );
-
-    SetShaderValue(
-        shader,
-        // 3,
-        GetShaderLocationAttrib( shader, "mousePosition" ),
-        &mousePosition,
-        SHADER_UNIFORM_VEC2
-    );
+    rlSetVertexAttribute( 2, 4, RL_FLOAT, false, 20, 0 );
 
     SetShaderValue(
         shader,
@@ -110,39 +101,11 @@ void App::setupShaders( AppConfig const& config )
         SHADER_UNIFORM_FLOAT
     );
 
-    SetShaderValue(
-        shader,
-        // 6,
-        GetShaderLocationAttrib( shader, "dt" ),
-        &dt,
-        SHADER_UNIFORM_FLOAT
-    );
-
-    SetShaderValue(
-        shader,
-        // 7,
-        GetShaderLocationAttrib( shader, "screenWidth" ),
-        &screenWidth,
-        SHADER_UNIFORM_FLOAT
-    );
-
-    SetShaderValue(
-        shader,
-        // 8,
-        GetShaderLocationAttrib( shader, "screenHeight" ),
-        &screenHeight,
-        SHADER_UNIFORM_FLOAT
-    );
-
     rlEnableVertexAttribute( 0 );
     rlEnableVertexAttribute( 1 );
     rlEnableVertexAttribute( 2 );
-    rlEnableVertexAttribute( 3 );
-    rlEnableVertexAttribute( 4 );
-    rlEnableVertexAttribute( 5 );
-    rlEnableVertexAttribute( 6 );
-    rlEnableVertexAttribute( 7 );
-    rlEnableVertexAttribute( 8 );
+
+    rlDisableVertexArray();
 }
 
 void App::init( AppConfig const& config )
@@ -263,21 +226,33 @@ void App::render()
         }
         case State::GPU:
         {
+            BeginShaderMode( shader );
+
+            //* Draw vbo triangle as points
+            rlEnablePointMode();
+
+            rlEnableShader( shader.id );
             rlEnableVertexArray( vao );
 
-            glDrawArrays(
-                GL_POINTS,
+            // glDrawArrays(
+            //     GL_POINTS,
+            //     0,
+            //     PARTICLE_COUNT
+            // );
+            rlDrawVertexArray(
                 0,
                 PARTICLE_COUNT
             );
 
             rlDisableVertexArray();
+
+            EndShaderMode();
+
             break;
         }
     }
 
     EndDrawing();
-
 #endif
 }
 

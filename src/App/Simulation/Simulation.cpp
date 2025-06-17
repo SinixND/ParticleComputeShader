@@ -16,11 +16,11 @@ void Simulation::init()
                   static_cast<float>( snx::RNG::random( 0, GetRenderHeight() ) ) },
                 { static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f,
                   static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f },
-                Color{
-                    (unsigned char)snx::RNG::random( 0, 255 ),
-                    (unsigned char)snx::RNG::random( 0, 255 ),
-                    (unsigned char)snx::RNG::random( 0, 255 ),
-                    50
+                Vector4{
+                    snx::RNG::random( 0, 255 ) / 255.0f,
+                    snx::RNG::random( 0, 255 ) / 255.0f,
+                    snx::RNG::random( 0, 255 ) / 255.0f,
+                    .2f
                 }
             };
     }
@@ -109,10 +109,10 @@ void Simulation::update(
         case State::GPU:
         {
             updateGPU(
-                // screenWidth,
-                // screenHeight,
-                // mousePosition,
-                // dt
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
             );
 
             break;
@@ -128,42 +128,90 @@ void Simulation::updateMultithreaded(
 )
 {
 #if !defined( EMSCRIPTEN )
-    size_t const threadCount{ threadPool_.threadCount() };
-    float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
+    /**
+        size_t const threadCount{ threadPool_.threadCount() };
+        float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
 
-    for ( size_t threadNumber{ 0 }; threadNumber < threadCount; ++threadNumber )
+        for ( size_t threadNumber{ 0 }; threadNumber < threadCount; ++threadNumber )
+        {
+            size_t firstParticle{ (size_t)( threadNumber * particlesPerThread ) };
+            size_t lastParticle{ (size_t)( ( threadNumber + 1 ) * particlesPerThread ) };
+
+            threadPool_.queueJob(
+                [=, this]()
+                {
+                    for ( size_t particleNumber{ firstParticle }; particleNumber < lastParticle; ++particleNumber )
+                    {
+                        updateParticle(
+                            particles[particleNumber],
+                            screenWidth,
+                            screenHeight,
+                            mousePosition,
+                            dt
+                        );
+                    }
+                }
+            );
+        }
+
+        threadPool_.joinJobs();
+    **/
+    for ( size_t n{ 0 }; n < PARTICLE_COUNT; ++n )
     {
-        size_t firstParticle{ (size_t)( threadNumber * particlesPerThread ) };
-        size_t lastParticle{ (size_t)( ( threadNumber + 1 ) * particlesPerThread ) };
-
         threadPool_.queueJob(
             [=, this]()
             {
-                for ( size_t particleNumber{ firstParticle }; particleNumber < lastParticle; ++particleNumber )
-                {
-                    updateParticle(
-                        particles[particleNumber],
-                        screenWidth,
-                        screenHeight,
-                        mousePosition,
-                        dt
-                    );
-                }
+                updateParticle(
+                    particles[n],
+                    screenWidth,
+                    screenHeight,
+                    mousePosition,
+                    dt
+                );
             }
         );
     }
-
-    threadPool_.joinJobs();
 #endif
 }
 
 void Simulation::updateGPU(
-    // int screenWidth,
-    // int screenHeight,
-    // Vector2 mousePosition,
-    // float dt
+    int screenWidth,
+    int screenHeight,
+    Vector2 mousePosition,
+    float dt
 )
 {
+    SetShaderValue(
+        shader,
+        // 3,
+        GetShaderLocationAttrib( shader, "mousePosition" ),
+        &mousePosition,
+        SHADER_UNIFORM_VEC2
+    );
+
+    SetShaderValue(
+        shader,
+        // 6,
+        GetShaderLocationAttrib( shader, "dt" ),
+        &dt,
+        SHADER_UNIFORM_FLOAT
+    );
+
+    SetShaderValue(
+        shader,
+        // 7,
+        GetShaderLocationAttrib( shader, "screenWidth" ),
+        &screenWidth,
+        SHADER_UNIFORM_FLOAT
+    );
+
+    SetShaderValue(
+        shader,
+        // 8,
+        GetShaderLocationAttrib( shader, "screenHeight" ),
+        &screenHeight,
+        SHADER_UNIFORM_FLOAT
+    );
 }
 
 void Simulation::deinit()

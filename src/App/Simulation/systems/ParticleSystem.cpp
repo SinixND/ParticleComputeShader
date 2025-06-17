@@ -90,7 +90,7 @@ namespace ParticleSystem
         //* Max speed: multiplier/0.5
         DrawPixelV(
             particle.position,
-            particle.color
+            ColorFromNormalized( particle.color )
         );
     }
 }
