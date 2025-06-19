@@ -12,7 +12,7 @@ namespace AppData
 
     int constexpr FPS_TARGET{ 300 };
 
-    int constexpr EXIT_KEY( KEY_F4 );
+    int constexpr EXIT_KEY( KEY_ESCAPE );
 };
 
 #endif

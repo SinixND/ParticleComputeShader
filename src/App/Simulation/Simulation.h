@@ -3,6 +3,7 @@
 
 #include "Particle.h"
 #include "ThreadPool.h"
+#include "SimulationConfig.h"
 
 int constexpr PARTICLE_COUNT{ 100000 };
 float constexpr MULTIPLIER{ 1000 };
@@ -15,8 +16,14 @@ enum class State
     MULTITHREAD,
 };
 
+struct int3{ int x, y, z};
+
 class Simulation
 {
+    SimulationConfig config{};
+    int3 csWorkgroups{ };
+    int3 csLocalSize{ };
+
 #if !defined( EMSCRIPTEN )
     ThreadPool threadPool_{};
 #endif
@@ -24,15 +31,25 @@ class Simulation
 public:
     Particle particles[PARTICLE_COUNT];
 
+    // clang-format off
+    float vertices[15] = {
+        // x, y, r, g, b
+        -.5f, -.5f,  1.0f, 0.0f, 0.0f, 
+        0.5f, -.5f,  0.0f, 1.0f, 0.0f, 
+        0.0f, 0.5f,  0.0f, 0.0f, 1.0f
+    };
+    // clang-format on
+
     //* Shader stuff
-    Shader shader{};
-    unsigned int vao, vbo;
+    Shader shaderProgram{};
+    unsigned int vao{};
+    unsigned int vbo{};
 
     //* Set to desired computation method
 #if defined( EMSCRIPTEN )
     State state{ State::SINGLE_CORE };
 #else
-    State state{ State::MULTITHREAD };
+    State state{ State::GPU };
 #endif
 
 public:
@@ -66,6 +83,9 @@ private:
         Vector2 mousePosition,
         float dt
     );
+
+    void setupShaders();
+    void setupShadersTest();
 };
 
 #endif

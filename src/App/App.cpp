@@ -1,5 +1,7 @@
 #include "App.h"
 
+// #define TEST
+
 #include "AppConfigs.h"
 #include "AppData.h"
 #include "ColorData.h"
@@ -46,77 +48,13 @@ void setupRaylib( [[maybe_unused]] AppConfig const& config )
     SetExitKey( AppData::EXIT_KEY );
 }
 
-void setupFrameworks( AppConfig const& config )
+void App::init()
 {
     setupRaylib( config );
-}
-
-void App::setupShaders( AppConfig const& config )
-{
-    //* Init shaders
-    //* Shader
-    shader = LoadShader(
-        config.vertexShaderPath,
-        config.fragmentShaderPath
-    );
-
-    //* VAO
-    vao = rlLoadVertexArray();
-    rlEnableVertexArray( vao );
-
-    //* VBO
-    vbo = rlLoadVertexBuffer(
-        simulation.particles,
-        sizeof( simulation.particles ),
-        true
-    );
-
-    //* Connect VBO with vertex shader
-    // (location)index: position in shader
-    // compSize: n consecutive values of:
-    // type: type of comp
-    // normalized: bool - should data be normalized
-    // stride: size of one vertex;
-    // offset: byte offset into VBO
-    //* Position
-    rlSetVertexAttribute( 0, 2, RL_FLOAT, false, 20, 0 );
-    //* Velocity
-    rlSetVertexAttribute( 1, 2, RL_FLOAT, false, 20, 0 );
-    //* Color
-    rlSetVertexAttribute( 2, 4, RL_FLOAT, false, 20, 0 );
-
-    SetShaderValue(
-        shader,
-        // 4,
-        GetShaderLocationAttrib( shader, "multiplier" ),
-        &MULTIPLIER,
-        SHADER_UNIFORM_FLOAT
-    );
-
-    SetShaderValue(
-        shader,
-        // 5,
-        GetShaderLocationAttrib( shader, "friction" ),
-        &FRICTION,
-        SHADER_UNIFORM_FLOAT
-    );
-
-    rlEnableVertexAttribute( 0 );
-    rlEnableVertexAttribute( 1 );
-    rlEnableVertexAttribute( 2 );
-
-    rlDisableVertexArray();
-}
-
-void App::init( AppConfig const& config )
-{
-    setupFrameworks( config );
 
     setupAppEvents();
 
     simulation.init();
-
-    setupShaders( config );
 }
 
 void updateFullscreenState()
@@ -204,6 +142,7 @@ void App::run()
 void App::render()
 {
 #if !defined( NOGUI )
+#if !defined( TEST )
     BeginDrawing();
     ClearBackground( ColorData::BG );
 
@@ -226,13 +165,13 @@ void App::render()
         }
         case State::GPU:
         {
-            BeginShaderMode( shader );
+            BeginShaderMode( simulation.shaderProgram );
 
             //* Draw vbo triangle as points
             rlEnablePointMode();
 
-            rlEnableShader( shader.id );
-            rlEnableVertexArray( vao );
+            rlEnableShader( simulation.shaderProgram.id );
+            rlEnableVertexArray( simulation.vao );
 
             // glDrawArrays(
             //     GL_POINTS,
@@ -253,6 +192,18 @@ void App::render()
     }
 
     EndDrawing();
+#else
+    BeginDrawing(); // Seems to only update time?
+    ClearBackground( BLACK );
+    rlEnableShader( simulation.shader.id );
+    rlEnableVertexArray( simulation.vao );
+    rlDrawVertexArray(
+        0,
+        3
+    );
+    rlDisableVertexArray();
+    EndDrawing();
+#endif
 #endif
 }
 

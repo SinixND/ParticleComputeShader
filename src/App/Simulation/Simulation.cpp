@@ -3,10 +3,100 @@
 #include "Particle.h"
 #include "ParticleSystem.h"
 #include "RNG.h"
+#include "SimConfig.h"
 #include <raylib.h>
+#include <rlgl.h>
+
+void Simulation::setupShaders()
+{
+    //* Init shaders
+    // Compute shader
+    char *shaderCode = LoadFileText(config.configShaderPath);
+    unsigned int shaderData = rlCompileShader(shaderCode, RL_COMPUTE_SHADER);
+    unsigned int computeShader = rlLoadComputeShaderProgram(shaderData);
+    UnloadFileText(shaderCode);
+
+    //* Shader program
+    shaderProgram = LoadShader(
+        config.vertexShaderPath,
+        config.fragmentShaderPath
+    );
+
+    //* VAO
+    vao = rlLoadVertexArray();
+    rlEnableVertexArray( vao );
+
+    //* VBO
+    vbo = rlLoadVertexBuffer(
+        particles,
+        sizeof( particles ),
+        true
+    );
+
+    //* Connect VBO with vertex shader
+    // (location)index: position in shader
+    // compSize: n consecutive values of:
+    // type: type of comp
+    // normalized: bool - should data be normalized
+    // stride: size of one vertex;
+    // offset: byte offset into VBO
+    //* Position
+    rlSetVertexAttribute( 0, 2, RL_FLOAT, false, 20, 0 );
+    //* Color
+    rlSetVertexAttribute( 1, 4, RL_FLOAT, false, 20, 0 );
+
+    rlEnableVertexAttribute( 0 );
+    rlEnableVertexAttribute( 1 );
+
+    rlDisableVertexArray();
+}
+
+void Simulation::setupShadersTest()
+{
+    shaderProgram = LoadShader(
+        config.vertexShaderPath,
+        config.fragmentShaderPath
+    );
+    vao = rlLoadVertexArray();
+    rlEnableVertexArray( vao );
+    vbo = rlLoadVertexBuffer(
+        vertices,
+        sizeof( vertices ),
+        false
+    );
+    //* Position
+    rlSetVertexAttribute(
+        0,
+        2,
+        RL_FLOAT,
+        false,
+        5 * sizeof( float ),
+        0
+    );
+    //* Color
+    rlSetVertexAttribute(
+        1,
+        3,
+        RL_FLOAT,
+        false,
+        5 * sizeof( float ),
+        0
+    );
+    rlEnableVertexAttribute( 0 );
+    rlEnableVertexAttribute( 1 );
+    rlDisableVertexArray();
+}
 
 void Simulation::init()
 {
+    //* Set workgroups and local size
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &csWorkgroups.x);
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &csWorkgroups.y);
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &csWorkgroups.z);
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &csLocalSize.x);
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &csLocalSize.y);
+    // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &csLocalSize.z);
+
     //* Init particles
     for ( size_t i{ 0 }; i < PARTICLE_COUNT; ++i )
     {
@@ -24,6 +114,12 @@ void Simulation::init()
                 }
             };
     }
+
+#if !defined( TEST )
+    setupShaders();
+#else
+    setupShadersTest();
+#endif
 }
 
 void updateParticle(
@@ -69,54 +165,6 @@ void Simulation::updateSingleCore(
             mousePosition,
             dt
         );
-    }
-}
-
-void Simulation::update(
-    int screenWidth,
-    int screenHeight,
-    Vector2 mousePosition,
-    float dt
-)
-{
-    switch ( state )
-    {
-        default:
-        case State::SINGLE_CORE:
-        {
-            updateSingleCore(
-                screenWidth,
-                screenHeight,
-                mousePosition,
-                dt
-            );
-
-            break;
-        }
-
-        case State::MULTITHREAD:
-        {
-            updateMultithreaded(
-                screenWidth,
-                screenHeight,
-                mousePosition,
-                dt
-            );
-
-            break;
-        }
-
-        case State::GPU:
-        {
-            updateGPU(
-                screenWidth,
-                screenHeight,
-                mousePosition,
-                dt
-            );
-
-            break;
-        }
     }
 }
 
@@ -182,36 +230,84 @@ void Simulation::updateGPU(
 )
 {
     SetShaderValue(
-        shader,
+        shaderProgram,
         // 3,
-        GetShaderLocationAttrib( shader, "mousePosition" ),
+        GetShaderLocationAttrib( shaderProgram, "mousePosition" ),
         &mousePosition,
         SHADER_UNIFORM_VEC2
     );
 
     SetShaderValue(
-        shader,
+        shaderProgram,
         // 6,
-        GetShaderLocationAttrib( shader, "dt" ),
+        GetShaderLocationAttrib( shaderProgram, "dt" ),
         &dt,
         SHADER_UNIFORM_FLOAT
     );
 
     SetShaderValue(
-        shader,
+        shaderProgram,
         // 7,
-        GetShaderLocationAttrib( shader, "screenWidth" ),
+        GetShaderLocationAttrib( shaderProgram, "screenWidth" ),
         &screenWidth,
         SHADER_UNIFORM_FLOAT
     );
 
     SetShaderValue(
-        shader,
+        shaderProgram,
         // 8,
-        GetShaderLocationAttrib( shader, "screenHeight" ),
+        GetShaderLocationAttrib( shaderProgram, "screenHeight" ),
         &screenHeight,
         SHADER_UNIFORM_FLOAT
     );
+}
+
+void Simulation::update(
+    int screenWidth,
+    int screenHeight,
+    Vector2 mousePosition,
+    float dt
+)
+{
+    switch ( state )
+    {
+        default:
+        case State::SINGLE_CORE:
+        {
+            updateSingleCore(
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
+            );
+
+            break;
+        }
+
+        case State::MULTITHREAD:
+        {
+            updateMultithreaded(
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
+            );
+
+            break;
+        }
+
+        case State::GPU:
+        {
+            updateGPU(
+                screenWidth,
+                screenHeight,
+                mousePosition,
+                dt
+            );
+
+            break;
+        }
+    }
 }
 
 void Simulation::deinit()
