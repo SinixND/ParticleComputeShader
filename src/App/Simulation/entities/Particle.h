@@ -5,9 +5,9 @@
 
 struct Particle
 {
-    Vector2 position{ 0, 0 };
-    Vector2 velocity{ 0, 0 };
-    Vector4 color{ 1, 1, 1, 1 };
+    Vector2 position{ 0.0f, 0.0f };
+    Vector4 color{ 1.0f, 1.0f, 1.0f, 0.1f };
+    Vector2 velocity{ 0.0f, 0.0f };
 };
 
 #endif

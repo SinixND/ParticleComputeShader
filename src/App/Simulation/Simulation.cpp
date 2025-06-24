@@ -3,7 +3,7 @@
 #include "Particle.h"
 #include "ParticleSystem.h"
 #include "RNG.h"
-#include "SimConfig.h"
+#include "SimulationConfig.h"
 #include <raylib.h>
 #include <rlgl.h>
 
@@ -11,10 +11,10 @@ void Simulation::setupShaders()
 {
     //* Init shaders
     // Compute shader
-    char *shaderCode = LoadFileText(config.configShaderPath);
-    unsigned int shaderData = rlCompileShader(shaderCode, RL_COMPUTE_SHADER);
-    unsigned int computeShader = rlLoadComputeShaderProgram(shaderData);
-    UnloadFileText(shaderCode);
+    // char* shaderCode = LoadFileText( config.computeShaderPath );
+    // unsigned int shaderData = rlCompileShader( shaderCode, RL_COMPUTE_SHADER );
+    // unsigned int computeShader = rlLoadComputeShaderProgram( shaderData );
+    // UnloadFileText( shaderCode );
 
     //* Shader program
     shaderProgram = LoadShader(
@@ -40,50 +40,29 @@ void Simulation::setupShaders()
     // normalized: bool - should data be normalized
     // stride: size of one vertex;
     // offset: byte offset into VBO
-    //* Position
-    rlSetVertexAttribute( 0, 2, RL_FLOAT, false, 20, 0 );
-    //* Color
-    rlSetVertexAttribute( 1, 4, RL_FLOAT, false, 20, 0 );
 
-    rlEnableVertexAttribute( 0 );
-    rlEnableVertexAttribute( 1 );
-
-    rlDisableVertexArray();
-}
-
-void Simulation::setupShadersTest()
-{
-    shaderProgram = LoadShader(
-        config.vertexShaderPath,
-        config.fragmentShaderPath
-    );
-    vao = rlLoadVertexArray();
-    rlEnableVertexArray( vao );
-    vbo = rlLoadVertexBuffer(
-        vertices,
-        sizeof( vertices ),
-        false
-    );
     //* Position
     rlSetVertexAttribute(
         0,
         2,
         RL_FLOAT,
         false,
-        5 * sizeof( float ),
+        8 * sizeof( float ),
         0
     );
     //* Color
     rlSetVertexAttribute(
         1,
-        3,
+        4,
         RL_FLOAT,
         false,
-        5 * sizeof( float ),
+        8 * sizeof( float ),
         0
     );
+
     rlEnableVertexAttribute( 0 );
     rlEnableVertexAttribute( 1 );
+
     rlDisableVertexArray();
 }
 
@@ -97,29 +76,33 @@ void Simulation::init()
     // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &csLocalSize.y);
     // glGetInteger_iv(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &csLocalSize.z);
 
-    //* Init particles
+    [[maybe_unused]]
+    int renderWidth{ GetRenderWidth() };
+    [[maybe_unused]]
+    int renderHeight{ GetRenderHeight() };
+
+    // //* Init particles
     for ( size_t i{ 0 }; i < PARTICLE_COUNT; ++i )
     {
         particles[i] =
+            // Particle{
+            //     { 0, 0 },
+            //     { 1, 1, 1, 1 },
+            //     { 0, 0 }
+            // };
             Particle{
-                { static_cast<float>( snx::RNG::random( 0, GetRenderWidth() ) ),
-                  static_cast<float>( snx::RNG::random( 0, GetRenderHeight() ) ) },
-                { static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f,
-                  static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f },
+                Vector2{ ( static_cast<float>( snx::RNG::random( 0, 2 * renderWidth ) ) - renderWidth ) / renderWidth, ( static_cast<float>( snx::RNG::random( 0, 2 * renderHeight ) ) - renderHeight ) / renderHeight },
                 Vector4{
                     snx::RNG::random( 0, 255 ) / 255.0f,
                     snx::RNG::random( 0, 255 ) / 255.0f,
                     snx::RNG::random( 0, 255 ) / 255.0f,
                     .2f
-                }
+                },
+                Vector2{ static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f, static_cast<float>( snx::RNG::random( -100, 100 ) ) / 100.0f },
             };
     }
 
-#if !defined( TEST )
     setupShaders();
-#else
-    setupShadersTest();
-#endif
 }
 
 void updateParticle(
@@ -175,35 +158,33 @@ void Simulation::updateMultithreaded(
     float dt
 )
 {
-#if !defined( EMSCRIPTEN )
     /**
-        size_t const threadCount{ threadPool_.threadCount() };
-        float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
+    size_t const threadCount{ threadPool_.threadCount() };
+    float const particlesPerThread{ 1.0f * PARTICLE_COUNT / threadCount };
 
-        for ( size_t threadNumber{ 0 }; threadNumber < threadCount; ++threadNumber )
-        {
-            size_t firstParticle{ (size_t)( threadNumber * particlesPerThread ) };
-            size_t lastParticle{ (size_t)( ( threadNumber + 1 ) * particlesPerThread ) };
+    for ( size_t threadNumber{ 0 }; threadNumber < threadCount; ++threadNumber )
+    {
+        size_t firstParticle{ (size_t)( threadNumber * particlesPerThread ) };
+        size_t lastParticle{ (size_t)( ( threadNumber + 1 ) * particlesPerThread ) };
 
-            threadPool_.queueJob(
-                [=, this]()
+        threadPool_.queueJob(
+            [=, this]()
+            {
+                for ( size_t particleNumber{ firstParticle }; particleNumber < lastParticle; ++particleNumber )
                 {
-                    for ( size_t particleNumber{ firstParticle }; particleNumber < lastParticle; ++particleNumber )
-                    {
-                        updateParticle(
-                            particles[particleNumber],
-                            screenWidth,
-                            screenHeight,
-                            mousePosition,
-                            dt
-                        );
-                    }
+                    updateParticle(
+                        particles[particleNumber],
+                        screenWidth,
+                        screenHeight,
+                        mousePosition,
+                        dt
+                    );
                 }
-            );
-        }
-
-        threadPool_.joinJobs();
+            }
+        );
+    }
     **/
+
     for ( size_t n{ 0 }; n < PARTICLE_COUNT; ++n )
     {
         threadPool_.queueJob(
@@ -219,7 +200,8 @@ void Simulation::updateMultithreaded(
             }
         );
     }
-#endif
+
+    threadPool_.joinJobs();
 }
 
 void Simulation::updateGPU(

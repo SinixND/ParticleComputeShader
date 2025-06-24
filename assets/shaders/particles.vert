@@ -7,7 +7,7 @@ out vec4 vertexColor;
 
 void main()
 {
-    gl_PointSize = 3.0f;
+    gl_PointSize = 5.0f;
 
     gl_Position = vec4(position, 0.0, 1.0);
 

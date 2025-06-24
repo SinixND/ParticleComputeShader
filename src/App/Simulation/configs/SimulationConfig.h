@@ -3,9 +3,9 @@
 
 struct SimulationConfig
 {
-    char const* const vertexShaderPath{ "assets/shaders/vertexShader.vert" };
-    char const* const fragmentShaderPath{ "assets/shaders/fragmentShader.frag" };
-    char const* const computeShaderPath{ "assets/shaders/computeShader.glsl" };
+    char const* const vertexShaderPath{ "assets/shaders/particles.vert" };
+    char const* const fragmentShaderPath{ "assets/shaders/particles.frag" };
+    char const* const computeShaderPath{ "assets/shaders/particles.glsl" };
 };
 
 #endif

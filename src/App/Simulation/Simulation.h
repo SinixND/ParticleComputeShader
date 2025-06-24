@@ -2,8 +2,8 @@
 #define IG20250606152339
 
 #include "Particle.h"
-#include "ThreadPool.h"
 #include "SimulationConfig.h"
+#include "ThreadPool.h"
 
 int constexpr PARTICLE_COUNT{ 100000 };
 float constexpr MULTIPLIER{ 1000 };
@@ -16,13 +16,16 @@ enum class State
     MULTITHREAD,
 };
 
-struct int3{ int x, y, z};
+struct int3
+{
+    int x, y, z;
+};
 
 class Simulation
 {
     SimulationConfig config{};
-    int3 csWorkgroups{ };
-    int3 csLocalSize{ };
+    // int3 csWorkgroups{};
+    // int3 csLocalSize{};
 
 #if !defined( EMSCRIPTEN )
     ThreadPool threadPool_{};

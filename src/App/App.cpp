@@ -1,7 +1,5 @@
 #include "App.h"
 
-// #define TEST
-
 #include "AppConfigs.h"
 #include "AppData.h"
 #include "ColorData.h"
@@ -9,8 +7,13 @@
 #include "EventDispatcher.h"
 #include "EventId.h"
 #include "ParticleSystem.h"
+#include "Simulation.h"
 #include <raylib.h>
 #include <rlgl.h>
+
+#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 
 #if defined( EMSCRIPTEN )
 #include <emscripten/emscripten.h>
@@ -142,7 +145,6 @@ void App::run()
 void App::render()
 {
 #if !defined( NOGUI )
-#if !defined( TEST )
     BeginDrawing();
     ClearBackground( ColorData::BG );
 
@@ -183,6 +185,11 @@ void App::render()
                 PARTICLE_COUNT
             );
 
+            // GLfloat buffer[24]{};
+            // glGetBufferSubData( GL_ARRAY_BUFFER, 0, 24, &buffer );
+            // [[maybe_unused]]
+            // auto stop{ 1 };
+
             rlDisableVertexArray();
 
             EndShaderMode();
@@ -203,7 +210,6 @@ void App::render()
     );
     rlDisableVertexArray();
     EndDrawing();
-#endif
 #endif
 }
 
