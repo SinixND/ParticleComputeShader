@@ -8,12 +8,16 @@ layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 // layout(location = 0) in vec2 position;
 // layout(location = 1) in vec2 velocity;
 // layout(location = 2) in vec4 color;
-layout(std430, binding = 0) buffer PositionSSBO {
+layout(std430, binding = 0) buffer positionSSBO {
     vec4 pos[];
 };
 
-layout(std430, binding = 1) buffer VelocitySSBO {
+layout(std430, binding = 1) buffer velocitySSBO {
     vec4 vel[];
+};
+
+layout(std430, binding = 2) buffer colorSSBO {
+    vec4 col[];
 };
 
 layout(location = 0) uniform vec2 mousePosition;
@@ -25,6 +29,7 @@ layout(location = 5) uniform float screenHeight;
 
 //* Helper functions
 vec2 attract(
+    vec2 position,
     vec2 velocity,
     vec2 target,
     float multiplier
@@ -97,6 +102,7 @@ void main()
     vec2 newVelocity = vel[idx].xy;
 
     newVelocity = attract(
+            newPosition,
             newVelocity,
             mousePosition,
             multiplier
@@ -121,4 +127,3 @@ void main()
     pos[idx].xy = newPosition;
     vel[idx].xy = newVelocity;
 }
-

@@ -2,17 +2,17 @@
 #define IG20250606152339
 
 #include "Particle.h"
+#include "Particles.h"
 #include "SimulationConfig.h"
 #include "ThreadPool.h"
-
-int constexpr PARTICLE_COUNT{ 100000 };
-float constexpr MULTIPLIER{ 1000 };
-float constexpr FRICTION{ 0.995 };
+#include "data/SimulationData.h"
+#include <raylib.h>
 
 enum class State
 {
     SINGLE_CORE,
-    GPU,
+    GPUVS,
+    GPUCS,
     MULTITHREAD,
 };
 
@@ -32,27 +32,30 @@ class Simulation
 #endif
 
 public:
-    Particle particles[PARTICLE_COUNT];
-
-    // clang-format off
-    float vertices[15] = {
-        // x, y, r, g, b
-        -.5f, -.5f,  1.0f, 0.0f, 0.0f, 
-        0.5f, -.5f,  0.0f, 1.0f, 0.0f, 
-        0.0f, 0.5f,  0.0f, 0.0f, 1.0f
-    };
-    // clang-format on
+    Particle particlesAoS[SimulationData::PARTICLE_COUNT];
+    Particles particlesSoA;
+    //* Can be empty, data comes from ssbo
+    // Vector3 vertices[SimulationData::PARTICLE_COUNT];
+    Vector3 vertices[1];
 
     //* Shader stuff
+    unsigned int positionSSBO;
+    unsigned int velocitySSBO;
+    unsigned int colorSSBO;
+
     Shader shaderProgram{};
     unsigned int vao{};
     unsigned int vbo{};
+
+    unsigned int computeShader{};
+
+    float debugBuffer[32];
 
     //* Set to desired computation method
 #if defined( EMSCRIPTEN )
     State state{ State::SINGLE_CORE };
 #else
-    State state{ State::GPU };
+    State state{ State::GPUCS };
 #endif
 
 public:
@@ -64,13 +67,6 @@ public:
         float dt
     );
     void deinit();
-
-    void updateGPU(
-        int screenWidth,
-        int screenHeight,
-        Vector2 mousePosition,
-        float dt
-    );
 
 private:
     void updateSingleCore(
@@ -87,8 +83,22 @@ private:
         float dt
     );
 
-    void setupShaders();
-    void setupShadersTest();
+    void updateVS(
+        int screenWidth,
+        int screenHeight,
+        Vector2 mousePosition,
+        float dt
+    );
+
+    void updateCS(
+        int screenWidth,
+        int screenHeight,
+        Vector2 mousePosition,
+        float dt
+    );
+
+    void setupVS();
+    void setupCS();
 };
 
 #endif

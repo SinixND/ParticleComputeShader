@@ -9,11 +9,8 @@
 #include "ParticleSystem.h"
 #include "Simulation.h"
 #include <raylib.h>
+#define GRAPHICS_API_OPENGL_43
 #include <rlgl.h>
-
-#include <glad/glad.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 
 #if defined( EMSCRIPTEN )
 #include <emscripten/emscripten.h>
@@ -144,28 +141,27 @@ void App::run()
 
 void App::render()
 {
-#if !defined( NOGUI )
     BeginDrawing();
     ClearBackground( ColorData::BG );
-
-    DrawFPS( 0, 0 );
 
     switch ( simulation.state )
     {
         default:
+        {
             break;
+        }
 
         case State::SINGLE_CORE:
         case State::MULTITHREAD:
         {
-            for ( Particle const& particle : simulation.particles )
+            for ( Particle const& particle : simulation.particlesAoS )
             {
                 ParticleSystem::drawParticle( particle );
             }
 
             break;
         }
-        case State::GPU:
+        case State::GPUVS:
         {
             BeginShaderMode( simulation.shaderProgram );
 
@@ -178,17 +174,12 @@ void App::render()
             // glDrawArrays(
             //     GL_POINTS,
             //     0,
-            //     PARTICLE_COUNT
+            //     SimulationData::PARTICLE_COUNT
             // );
             rlDrawVertexArray(
                 0,
-                PARTICLE_COUNT
+                SimulationData::PARTICLE_COUNT
             );
-
-            // GLfloat buffer[24]{};
-            // glGetBufferSubData( GL_ARRAY_BUFFER, 0, 24, &buffer );
-            // [[maybe_unused]]
-            // auto stop{ 1 };
 
             rlDisableVertexArray();
 
@@ -196,21 +187,16 @@ void App::render()
 
             break;
         }
+
+        case State::GPUCS:
+        {
+            break;
+        }
     }
 
+    DrawFPS( 0, 0 );
+
     EndDrawing();
-#else
-    BeginDrawing(); // Seems to only update time?
-    ClearBackground( BLACK );
-    rlEnableShader( simulation.shader.id );
-    rlEnableVertexArray( simulation.vao );
-    rlDrawVertexArray(
-        0,
-        3
-    );
-    rlDisableVertexArray();
-    EndDrawing();
-#endif
 }
 
 void App::deinit()
@@ -231,7 +217,7 @@ void App::setupAppEvents()
         {
             simulation.init();
         },
-        true
+        false
     );
 }
 

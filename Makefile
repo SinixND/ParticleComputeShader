@@ -200,7 +200,7 @@ ifeq ($(PLATFORM),windows)
 endif
 
 # LBL_OtherDirectories_ProjectSpecific
-RAYLIB_SRC_DIR 			= $(USR)/lib/raylib/src
+RAYLIB_SRC_DIR 			= $(USR)/local/lib/raylib/src
 
 
 #######################################
