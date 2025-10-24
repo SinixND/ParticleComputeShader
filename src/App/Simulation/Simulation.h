@@ -76,12 +76,14 @@ private:
         float dt
     );
 
+#if !defined( EMSCRIPTEN )
     void updateMultithreaded(
         int screenWidth,
         int screenHeight,
         Vector2 mousePosition,
         float dt
     );
+#endif
 
     void updateVS(
         int screenWidth,

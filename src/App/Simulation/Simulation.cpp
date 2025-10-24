@@ -181,6 +181,7 @@ void Simulation::update(
             break;
         }
 
+#if !defined( EMSCRIPTEN )
         case State::MULTITHREAD:
         {
             updateMultithreaded(
@@ -192,6 +193,7 @@ void Simulation::update(
 
             break;
         }
+#endif
 
         case State::GPUVS:
         {
@@ -272,6 +274,7 @@ void Simulation::updateSingleCore(
     }
 }
 
+#if !defined( EMSCRIPTEN )
 void Simulation::updateMultithreaded(
     int screenWidth,
     int screenHeight,
@@ -324,6 +327,7 @@ void Simulation::updateMultithreaded(
 
     threadPool_.joinJobs();
 }
+#endif
 
 void Simulation::updateVS(
     int screenWidth,
